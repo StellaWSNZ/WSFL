@@ -51,3 +51,53 @@ test_that("GetFolderPath throws an error for invalid inputs", {
   expect_error(GetFolderPath(2025, 1), "No path specified for selected Term")
   expect_error(GetFolderPath(2024, 5), "No path specified for selected Term")
 })
+
+
+
+
+
+
+
+test_that("Valid CurrentDate returns expected competencies", {
+  # Connect to database (using a mock or actual connection)
+  con <- GetWSFLAzureConnection()
+
+  # Use a test date that is expected to return some competencies
+  test_date <- as.Date("2024-03-01")
+
+  # Fetch competencies
+  results <- GetRelevantCompetencies(test_date, con)
+
+  # Check that the result is a dataframe
+  expect_s3_class(results, "data.frame")
+
+  # Ensure expected columns exist
+  expect_true(all(c("CompetencyID", "StartDate", "EndDate") %in% colnames(results)))
+
+  # Ensure StartDate is not NULL
+  expect_false(any(is.na(results$StartDate)))
+
+  # Disconnect from database
+  dbDisconnect(con)
+})
+
+test_that("Handles non-Date input correctly", {
+  con <- GetWSFLAzureConnection()
+
+  # Expect error when passing incorrect types
+  expect_error(GetRelevantCompetencies("2024-03-01", con), "must be a Date object")
+  expect_error(GetRelevantCompetencies(20240301, con), "must be a Date object")
+  expect_error(GetRelevantCompetencies(Sys.time(), con), "must be a Date object")
+
+  dbDisconnect(con)
+})
+
+
+
+test_that("Handles invalid database connection correctly", {
+  con <- GetWSFLAzureConnection()
+  dbDisconnect(con)
+
+  expect_error(GetRelevantCompetencies(as.Date("2024-03-01"), con), "Invalid database connection")
+})
+

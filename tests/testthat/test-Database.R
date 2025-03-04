@@ -30,46 +30,5 @@ test_that("Handles incorrect credentials correctly", {
 })
 
 
-test_that("Valid CurrentDate returns expected competencies", {
-  # Connect to database (using a mock or actual connection)
-  con <- GetWSFLAzureConnection()
 
-  # Use a test date that is expected to return some competencies
-  test_date <- as.Date("2024-03-01")
-
-  # Fetch competencies
-  results <- GetRelevantCompetencies(test_date, con)
-
-  # Check that the result is a dataframe
-  expect_s3_class(results, "data.frame")
-
-  # Ensure expected columns exist
-  expect_true(all(c("CompetencyID", "StartDate", "EndDate") %in% colnames(results)))
-
-  # Ensure StartDate is not NULL
-  expect_false(any(is.na(results$StartDate)))
-
-  # Disconnect from database
-  dbDisconnect(con)
-})
-
-test_that("Handles non-Date input correctly", {
-  con <- GetWSFLAzureConnection()
-
-  # Expect error when passing incorrect types
-  expect_error(GetRelevantCompetencies("2024-03-01", con), "must be a Date object")
-  expect_error(GetRelevantCompetencies(20240301, con), "must be a Date object")
-  expect_error(GetRelevantCompetencies(Sys.time(), con), "must be a Date object")
-
-  dbDisconnect(con)
-})
-
-
-
-test_that("Handles invalid database connection correctly", {
-  con <- GetWSFLAzureConnection()
-  dbDisconnect(con)  # Close the connection to make it invalid
-
-  expect_error(GetRelevantCompetencies(as.Date("2024-03-01"), con), "Invalid database connection")
-})
 
