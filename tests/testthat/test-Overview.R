@@ -101,3 +101,29 @@ test_that("Handles invalid database connection correctly", {
   expect_error(GetRelevantCompetencies(as.Date("2024-03-01"), con), "Invalid database connection")
 })
 
+
+
+test_that("Handles invalid years correctly", {
+  con <- GetWSFLAzureConnection()
+
+  expect_error(
+    CheckFiles(
+      GetWSFLAzureConnection(),
+      2024,
+      c(1, 5),
+      "One or more of your values for Term are invalid."
+    )
+  )
+  expect_error(
+    CheckFiles(GetWSFLAzureConnection(), 2026, c(1), regexp = "Error: CalendarYear is out of range. Valid range is")
+  )
+
+
+  expect_error(
+    CheckFiles(GetWSFLAzureConnection(), 2022, c(1), regexp = "Error: CalendarYear is out of range. Valid range is")
+  )
+
+  expect_error(
+    CheckFiles(GetWSFLAzureConnection(), 2023, c(1), regexp = "is not valid for CalendarYear")
+  )
+})

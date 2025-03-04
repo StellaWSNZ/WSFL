@@ -108,8 +108,8 @@ GetRelevantCompetencies <- function(CurrentDate, con) {
 #' and returns summaries of present and missing files.
 #'
 #' @param con A database connection object (`DBI::dbConnect`).
-#' @param df A data frame containing `CALENDARYEAR` and `TERM` columns, specifying the years
-#' and terms for which to check file presence.
+#' @param CalendarYear A vector of years or a singular year
+#' @param Term A vector of terms or a singular term
 #'
 #' @return A list with two elements:
 #'   - `missing_files`: A data frame with columns `FullPath`, `CALENDARYEAR`, and `TERM` for files
@@ -134,7 +134,30 @@ GetRelevantCompetencies <- function(CurrentDate, con) {
 #' @seealso [GetFolderPath] for retrieving the folder path based on `CALENDARYEAR` and `TERM`.
 #'
 #' @export
-CheckFiles <- function(con, df) {
+CheckFiles <- function(con, CalendarYear, Term) {
+  max_year <- dbGetQuery(con, "SELECT MAX(CalendarYear) FROM SchoolProvider")[[1]]
+  min_year <- dbGetQuery(con, "SELECT MIN(CalendarYear) FROM SchoolProvider")[[1]]
+
+  # Fetch min and max Term for the given CalendarYear
+  max_term <- dbGetQuery(con, paste("SELECT MAX(Term) FROM SchoolProvider WHERE CalendarYear =", max_year))[[1]]
+  min_term <- dbGetQuery(con, paste("SELECT MIN(Term) FROM SchoolProvider WHERE CalendarYear =", min_year))[[1]]
+
+  # Validate inputs
+  if (!(Term %in% 1:4)) {
+    stop("Error: One or more of your values for Term are invalid. Term must be between 1 and 4.")
+  }
+
+  if (CalendarYear < min_year || CalendarYear > max_year) {
+    stop(paste("Error: CalendarYear is out of range. Valid range is", min_year, "to", max_year))
+  }
+
+  valid_terms <- dbGetQuery(con, paste("SELECT DISTINCT Term FROM SchoolProvider WHERE CalendarYear =", CalendarYear))[[1]]
+  if (!(Term %in% valid_terms)) {
+    stop(paste("Error: Term", Term, "is not valid for CalendarYear", CalendarYear, ". Valid terms are:", paste(valid_terms, collapse = ", ")))
+  }
+
+
+  df = data.frame(CALENDARYEAR = CalendarYear, TERM = Term)
   # Fetch data from the database
   Class <- dbGetQuery(con, "SELECT FilePath FROM ClassFilePath")
   Error <- dbGetQuery(con, "SELECT FilePath FROM Error")

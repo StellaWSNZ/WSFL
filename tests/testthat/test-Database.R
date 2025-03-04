@@ -13,15 +13,7 @@ test_that("Database contains tables", {
   dbDisconnect(con)
 })
 
-#
-# test_that("Handles missing credentials correctly", {
-#   # Temporarily remove environment variables
-#
-#   # Expect an error due to missing credentials
-#   expect_error(GetWSFLAzureConnection(), "Database username or password is missing")
-#
-#   # Restore environment variables
-# })
+
 
 test_that("Handles incorrect credentials correctly", {
   # Use incorrect credentials
